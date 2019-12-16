@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import Joke from "./Joke";
 import axios from "axios";
+import uuid from "uuid/v4";
 import "./JokeList.css";
 
 class JokeList extends Component {
@@ -10,10 +11,6 @@ class JokeList extends Component {
   constructor(props) {
     super(props);
     this.state = { jokes: [] };
-  }
-
-  handleVote(id, delta) {
-    // need to create the function and event handlers to count and factor each vote using the up and down arrows
   }
 
   // make api request via axios
@@ -29,11 +26,20 @@ class JokeList extends Component {
       // console.log(response.data.joke); // returns ONE joke but need to render 10 on the page
       // take the response.data.joke and push it into jokes
       // jokes.push(response.data.joke); -> ISSUE is we need to return an object in order to attach an id, votes, etc to it
-      jokes.push({ text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
-    }
+      jokes.push({ id: uuid(), text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
+    } // jokes.push is pushing an 'object' so we can add keys to it.
     // console.log(jokes);
     this.setState({ jokes: jokes });
   }
+  // need to create the function and event handlers to count and factor each vote using the up and down arrows
+  handleVote(id, delta) {
+    this.setState(state => ({
+      jokes: state.jokes.map(j =>
+        j.id === id ? { ...j, votes: j.votes + delta } : j
+      )
+    }));
+  }
+
   render() {
     return (
       <div className="JokeList">
@@ -53,7 +59,13 @@ class JokeList extends Component {
               {/* {j.text} - {j.votes} */}
               {/* already receiving the text and joke but the thinking is to add this as props, 
               and pass in a new component */}
-              <Joke votes={j.votes} text={j.text} />
+              <Joke
+                key={j.id}
+                votes={j.votes}
+                text={j.text}
+                upvote={() => this.handleVote(j.id, 1)}
+                downvote={() => this.handleVote(j.id, -1)}
+              />
             </div>
           ))}
         </div>
