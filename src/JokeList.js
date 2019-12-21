@@ -10,11 +10,17 @@ class JokeList extends Component {
   };
   constructor(props) {
     super(props);
-    this.state = { jokes: [] };
+    // this.state = { jokes: [] };  // we need to get the data from local storage(.parse()) and set it to state
+    this.state = {
+      jokes: JSON.parse(window.localStorage.getItem("jokes")) || []
+    };
   }
 
   // make api request via axios
-  async componentDidMount() {
+  componentDidMount() {
+    if (this.state.jokes.length === 0) this.getJokes(); // prevents overriding local storage every time the page is refreshed
+  }
+  async getJokes() {
     let jokes = []; // fill array and then setState in order to setting state 10 different times
     // while loop to prevent duplicates
     while (jokes.length < this.props.numJokesToGet) {
@@ -30,8 +36,11 @@ class JokeList extends Component {
     } // jokes.push is pushing an 'object' so we can add keys to it.
     // console.log(jokes);
     this.setState({ jokes: jokes });
+    // use local storage
+    window.localStorage.setItem("jokes", JSON.stringify(jokes));
   }
-  // need to create the function and event handlers to count and factor each vote using the up and down arrows
+
+  // create a function and event handler to count and factor each vote using the up and down arrows
   handleVote(id, delta) {
     this.setState(state => ({
       jokes: state.jokes.map(j =>
@@ -56,11 +65,8 @@ class JokeList extends Component {
         <div className="JokeList-jokes">
           {this.state.jokes.map(j => (
             <div>
-              {/* {j.text} - {j.votes} */}
-              {/* already receiving the text and joke but the thinking is to add this as props, 
-              and pass in a new component */}
               <Joke
-                key={j.id}
+                key={j.uuid}
                 votes={j.votes}
                 text={j.text}
                 upvote={() => this.handleVote(j.id, 1)}
