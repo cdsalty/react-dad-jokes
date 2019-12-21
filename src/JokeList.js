@@ -12,8 +12,10 @@ class JokeList extends Component {
     super(props);
     // this.state = { jokes: [] };  // we need to get the data from local storage(.parse()) and set it to state
     this.state = {
-      jokes: JSON.parse(window.localStorage.getItem("jokes")) || []
+      jokes: JSON.parse(window.localStorage.getItem("jokes") || [])
     };
+
+    this.handleClick = this.handleClick.bind(this);
   }
 
   // make api request via axios
@@ -32,7 +34,7 @@ class JokeList extends Component {
       // console.log(response.data.joke); // returns ONE joke but need to render 10 on the page
       // take the response.data.joke and push it into jokes
       // jokes.push(response.data.joke); -> ISSUE is we need to return an object in order to attach an id, votes, etc to it
-      jokes.push({ id: uuid(), text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
+      jokes.push({ id: uuid, text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
     } // jokes.push is pushing an 'object' so we can add keys to it.
     // console.log(jokes);
     this.setState({ jokes: jokes });
@@ -42,11 +44,19 @@ class JokeList extends Component {
 
   // create a function and event handler to count and factor each vote using the up and down arrows
   handleVote(id, delta) {
-    this.setState(state => ({
-      jokes: state.jokes.map(j =>
-        j.id === id ? { ...j, votes: j.votes + delta } : j
-      )
-    }));
+    this.setState(
+      state => ({
+        jokes: state.jokes.map(j =>
+          j.id === id ? { ...j, votes: j.votes + delta } : j
+        )
+      }),
+      () =>
+        window.localStorage.setItem("jokes", JSON.stringify(this.state.jokes))
+    );
+  }
+
+  handleClick() {
+    this.getJokes();
   }
 
   render() {
@@ -60,13 +70,15 @@ class JokeList extends Component {
             src="https://assets.dryicons.com/uploads/icon/svg/8927/0eb14c71-38f2-433a-bfc8-23d9c99b3647.svg"
             alt="face icon"
           />
-          <button className="JokeList-getmore">New Jokes</button>
+          <button className="JokeList-getmore" onClick={this.handleClick}>
+            New Jokes
+          </button>
         </div>
         <div className="JokeList-jokes">
           {this.state.jokes.map(j => (
             <div>
               <Joke
-                key={j.uuid}
+                key={j.id}
                 votes={j.votes}
                 text={j.text}
                 upvote={() => this.handleVote(j.id, 1)}
