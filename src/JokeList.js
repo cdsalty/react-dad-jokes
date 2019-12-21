@@ -12,7 +12,8 @@ class JokeList extends Component {
     super(props);
     // this.state = { jokes: [] };  // we need to get the data from local storage(.parse()) and set it to state
     this.state = {
-      jokes: JSON.parse(window.localStorage.getItem("jokes") || [])
+      jokes: JSON.parse(window.localStorage.getItem("jokes") || []),
+      loading: false
     };
 
     this.handleClick = this.handleClick.bind(this);
@@ -34,10 +35,13 @@ class JokeList extends Component {
       // console.log(response.data.joke); // returns ONE joke but need to render 10 on the page
       // take the response.data.joke and push it into jokes
       // jokes.push(response.data.joke); -> ISSUE is we need to return an object in order to attach an id, votes, etc to it
-      jokes.push({ id: uuid, text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
+      jokes.push({ id: uuid(), text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
     } // jokes.push is pushing an 'object' so we can add keys to it.
     // console.log(jokes);
-    this.setState({ jokes: jokes });
+    this.setState(state => ({
+      loading: false,
+      jokes: [...state.jokes, ...jokes]
+    }));
     // use local storage
     window.localStorage.setItem("jokes", JSON.stringify(jokes));
   }
@@ -56,10 +60,19 @@ class JokeList extends Component {
   }
 
   handleClick() {
-    this.getJokes();
+    // this.getJokes();
+    this.setState({ loading: true }, this.getJokes); // run this.getJokes after setting state to true
   }
 
   render() {
+    if (this.state.loading) {
+      return (
+        <div className="spinner">
+          <i className="far fa-8x fa-laugh fa-spin" />
+          <h3 className="JokeList-title">loading...</h3>
+        </div>
+      );
+    }
     return (
       <div className="JokeList">
         <div className="JokeList-sidebar">
