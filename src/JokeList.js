@@ -12,10 +12,11 @@ class JokeList extends Component {
     super(props);
     // this.state = { jokes: [] };  // we need to get the data from local storage(.parse()) and set it to state
     this.state = {
-      jokes: JSON.parse(window.localStorage.getItem("jokes") || []),
+      jokes: JSON.parse(window.localStorage.getItem("jokes") || "[]"),
       loading: false
     };
-
+    this.seenJokes = new Set(this.state.jokes.map(joke => joke.text)); // set of text jokes, not the object
+    console.log(this.seenJokes);
     this.handleClick = this.handleClick.bind(this);
   }
 
@@ -24,26 +25,39 @@ class JokeList extends Component {
     if (this.state.jokes.length === 0) this.getJokes(); // prevents overriding local storage every time the page is refreshed
   }
   async getJokes() {
-    let jokes = []; // fill array and then setState in order to setting state 10 different times
-    // while loop to prevent duplicates
-    while (jokes.length < this.props.numJokesToGet) {
-      let response = await axios.get("https://icanhazdadjoke.com/", {
-        // response is coming back in the form of HTML, need to change the 'headers' setup
-        headers: { Accept: "application/json" } // requesting the json version of the html format coming from response
-      });
-      // console.log(response); // get an object data and it gives id, a joke and status
-      // console.log(response.data.joke); // returns ONE joke but need to render 10 on the page
-      // take the response.data.joke and push it into jokes
-      // jokes.push(response.data.joke); -> ISSUE is we need to return an object in order to attach an id, votes, etc to it
-      jokes.push({ id: uuid(), text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
-    } // jokes.push is pushing an 'object' so we can add keys to it.
-    // console.log(jokes);
-    this.setState(state => ({
-      loading: false,
-      jokes: [...state.jokes, ...jokes]
-    }));
-    // use local storage
-    window.localStorage.setItem("jokes", JSON.stringify(jokes));
+    try {
+      let jokes = []; // fill array and then setState in order to setting state 10 different times
+      // while loop to prevent duplicates
+      while (jokes.length < this.props.numJokesToGet) {
+        let response = await axios.get("https://icanhazdadjoke.com/", {
+          // response is coming back in the form of HTML, need to change the 'headers' setup
+          headers: { Accept: "application/json" } // requesting the json version of the html format coming from response
+        });
+        let newJoke = response.data.joke;
+        if (!this.seenJokes.has(newJoke)) {
+          // if it doesn't have a particular joke, push it in...
+
+          // console.log(response); // get an object data and it gives id, a joke and status
+          // console.log(response.data.joke); // returns ONE joke but need to render 10 on the page
+          // take the response.data.joke and push it into jokes
+          // jokes.push(response.data.joke); -> ISSUE is we need to return an object in order to attach an id, votes, etc to it
+          jokes.push({ id: uuid(), text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
+        } else {
+          console.log("FOUND A DUPLICATE");
+          console.log(newJoke);
+        }
+      } // jokes.push is pushing an 'object' so we can add keys to it.
+      // console.log(jokes);
+      this.setState(state => ({
+        loading: false,
+        jokes: [...state.jokes, ...jokes]
+      }));
+      // use local storage
+      window.localStorage.setItem("jokes", JSON.stringify(jokes));
+    } catch (error) {
+      alert(error);
+      this.setState({ loading: false });
+    }
   }
 
   // create a function and event handler to count and factor each vote using the up and down arrows
@@ -61,15 +75,18 @@ class JokeList extends Component {
 
   handleClick() {
     // this.getJokes();
-    this.setState({ loading: true }, this.getJokes); // run this.getJokes after setting state to true
+    this.setState({ loading: true }, this.getJokes); // using getJokes as a callback to run after this.getJokes after setting state to true
   }
 
   render() {
+    // if loading is true, add spinner
     if (this.state.loading) {
       return (
-        <div className="spinner">
+        <div className="JokeList-spinner">
           <i className="far fa-8x fa-laugh fa-spin" />
-          <h3 className="JokeList-title">loading...</h3>
+          <h3 className="JokeList-title">
+            connecting some wires, hold one second...
+          </h3>
         </div>
       );
     }
