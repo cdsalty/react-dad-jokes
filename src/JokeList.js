@@ -90,6 +90,8 @@ class JokeList extends Component {
         </div>
       );
     }
+    let jokes = this.state.jokes.sort((a, b) => b.votes - a.votes); // a.votes - b.votes would have negatives at the top
+    // will map this array below
     return (
       <div className="JokeList">
         <div className="JokeList-sidebar">
@@ -105,7 +107,8 @@ class JokeList extends Component {
           </button>
         </div>
         <div className="JokeList-jokes">
-          {this.state.jokes.map(j => (
+          {/* {this.state.jokes.map(j => ( */}
+          {jokes.map(j => (
             <div>
               <Joke
                 key={j.id}
