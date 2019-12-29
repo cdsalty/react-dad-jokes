@@ -56,11 +56,3 @@ class Joke extends Component {
 }
 
 export default Joke;
-/* 
-after creating basic outline, import this component, 'Joke.js' into JokeList. 
-  - map through the jokes and for each joke, create this 'Joke' component instead of the standard text
-    it's getting now. 
-  - when passing in the component, assign votes and text in order to pass down as props
-
-
-*/

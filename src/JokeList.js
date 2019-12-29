@@ -35,12 +35,6 @@ class JokeList extends Component {
         });
         let newJoke = response.data.joke;
         if (!this.seenJokes.has(newJoke)) {
-          // if it doesn't have a particular joke, push it in...
-
-          // console.log(response); // get an object data and it gives id, a joke and status
-          // console.log(response.data.joke); // returns ONE joke but need to render 10 on the page
-          // take the response.data.joke and push it into jokes
-          // jokes.push(response.data.joke); -> ISSUE is we need to return an object in order to attach an id, votes, etc to it
           jokes.push({ id: uuid(), text: response.data.joke, votes: 0 }); // inside of 'jokes,' I am pushing in an object with the values of text and votes
         } else {
           console.log("FOUND A DUPLICATE");
